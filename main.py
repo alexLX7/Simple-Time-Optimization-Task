@@ -21,24 +21,32 @@ class FileHandler():
     #     return None
     
     def write_json_file(self, path: str, data: dict):
-        with open(path, 'w') as f:
-            json.dump(data, f, indent=4)
+        try:
+            with open(path, 'w') as f:
+                json.dump(data, f, indent=4)
+        except:
+            print("Error: cannot write the data to the file with this path:\n")
+            print("Path: " + str(path))
+        return None
             
     def read_json_file(self, path: str):
-        with open(path) as f:
-            data = json.load(f)
-            for attr, v in data.items():
-                print('{}: {}'.format(attr, v))
-        return data
+        try:
+            with open(path) as f:
+                data = json.load(f)
+                for attr, v in data.items():
+                    print('{}: {}'.format(attr, v))
+            return data
+        except:
+            print("Error: cannot read the data from the file with this path:\n")
+            print("Path: " + str(path))
+        return None
              
 class OptimizedSchedule():
     def __init__(self, data: dict):
-                #   list_of_lists_of_times: list, deadline: int, 
-                #  list_of_important_indexes: list, time_of_the_start: int):
         super().__init__() 
         self._list_of_lists_of_times = data['T'] # list_of_lists_of_times
         self._deadline = data['V'] # deadline
-        self._list_of_important_indexes = data['Indexes'] # list_of_important_indexes
+        self._list_of_important_indexes = data['I'] # list_of_important_indexes
         self._time_of_the_start = data['U'] # time_of_the_start
         self._valid_length_of_list = data['N'] # valid_length_of_list
         
@@ -91,6 +99,7 @@ if __name__ == "__main__":
     N = 5 # N is number of items, just the length of the list
     V = 4 # V is deadline, items with important indexes must be processed by this value of time
     K, L = 2, 4 # K and L are two important indexes
+    I = [K, L] # list of important indexes
     U = 0 # the time of the start
     
     # lists down below are the lists of time of processing each item
@@ -111,35 +120,22 @@ if __name__ == "__main__":
     # Main task: find the shortest time to process all the elements
     #  so there is one list to find: valid list with the minimum sum of all elements
     
-    data = {
+    data_to_dump = {
         'N': N,
         'V': V,
-        'Indexes': tuple([K, L]),
+        'I': tuple([K, L]),
         'U': U,
         'T': tuple(T)
     }
     
     # hardcoded input
-    # optimized_schedule = OptimizedSchedule([list_1, list_2, list_3, list_4, list_5], V, [K, L], U)
+    # optimized_schedule = OptimizedSchedule(data_to_dump)
     
     # input from the file
     file_handler = FileHandler()
     
-    # T = file_handler.read_file('in.txt')
-    # T_1 = file_handler.write_json_file('in.json.txt', [V, [K, L], U, T])
-    
-    # T = file_handler.write_json_file('in.json.txt',
-    #                                     {
-    #                                      'N': N,
-    #                                      'V': V,
-    #                                      'Indexes': tuple([K, L]),
-    #                                      'U': U,
-    #                                      'T': tuple(T)})
-    
-    # data = file_handler.read_json_file('in.json.txt')
-    
-    # optimized_schedule = OptimizedSchedule(T, V, [K, L], U)
-    
+    file_handler.write_json_file('input.json.txt', data_to_dump)
+    data = file_handler.read_json_file('input.json.txt')
     optimized_schedule = OptimizedSchedule(data)
     
     # init schedule class to process the given list of lists to get the best valid list of times
