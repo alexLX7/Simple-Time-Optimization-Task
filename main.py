@@ -1,3 +1,23 @@
+
+class FileHandler():
+    def __init__(self):
+        super().__init__() 
+        
+    def read_file(self, path: str):
+        try:
+            list_to_return = []
+            with open(path, 'r') as f:
+                list_of_lines = [line for line in f.read().split('\n') if line]
+            for line in list_of_lines:
+                numbers = [float(x) for x in line.split()]
+                list_to_return.append(numbers)
+            print(*list_to_return, '\n')
+            return list_to_return
+        except:
+            print("Error: cannot read the data from the file with this path:\n")
+            print("Path: " + str(path))
+        return None
+             
              
 class OptimizedSchedule():
     def __init__(self, list_of_lists_of_times: list, deadline: int, 
@@ -7,6 +27,7 @@ class OptimizedSchedule():
         self._deadline = deadline
         self._list_of_important_indexes = list_of_important_indexes
         self._time_of_the_start = time_of_the_start
+        
         self.list_of_valid_lists_of_times = \
             self._validate_each_list_of_times(self._list_of_lists_of_times)
         self.the_best_list = self._find_the_best_list(self.list_of_valid_lists_of_times)
@@ -52,7 +73,12 @@ class OptimizedSchedule():
         
 if __name__ == "__main__":
     
+    # given values
     N = 5 # N is number of items, just the length of the list
+    V = 4 # V is deadline, items with important indexes must be processed by this value of time
+    K, L = 2, 4 # K and L are two important indexes
+    U = 0 # the time of the start
+    
     # lists down below are the lists of time of processing each item
     # (each element is the time of processing current item with that index)
     list_1 = [2, 2, 1, 1, 1]
@@ -60,9 +86,6 @@ if __name__ == "__main__":
     list_3 = [2, 2, 4, 4, 4]
     list_4 = [1, 1, 1, .5, .5]
     list_5 = [1, 2, 2, 2, 2]
-    V = 4 # V is deadline, items with important indexes must be processed by this value of time
-    K, L = 2, 4 # K and L are two important indexes
-    U = 0 # the time of the start
     
     # Main issue: if the sum of elements(until the last important index) more than a deadline value
     #  and there is missing one or more of important elements with indexes K, L (etc)
@@ -71,7 +94,14 @@ if __name__ == "__main__":
     # Main task: find the shortest time to process all the elements
     #  so there is one list to find: valid list with the minimum sum of all elements
     
-    optimized_schedule = OptimizedSchedule([list_1, list_2, list_3, list_4, list_5], V, [K, L], U)
+    # hardcoded input
+    # optimized_schedule = OptimizedSchedule([list_1, list_2, list_3, list_4, list_5], V, [K, L], U)
+    
+    # input from the file
+    file_handler = FileHandler()
+    list_of_lists_with_times = file_handler.read_file('in.txt')
+    optimized_schedule = OptimizedSchedule(list_of_lists_with_times, V, [K, L], U)
+    
     # init schedule class to process the given list of lists to get the best valid list of times
     optimized_schedule.print_the_best_list()
     # the best list of times out of all given samples is [1, 1, .5, .5, .5]
