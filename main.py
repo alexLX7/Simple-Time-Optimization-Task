@@ -20,6 +20,9 @@ class FileHandler():
     #         print("Path: " + str(path))
     #     return None
     
+    def print_data_as_dict(self, data: dict):
+        pass
+    
     def write_json_file(self, path: str, data: dict):
         try:
             with open(path, 'w') as f:
@@ -80,14 +83,15 @@ class OptimizedSchedule():
     def _check_validation(self, list_of_times: list):
         _sum = self._time_of_the_start
         try:
-            if self._list_of_important_indexes:  
-                for i in range(0, max(self._list_of_important_indexes)):
-                    _sum += list_of_times[i]
-            else:  # if _list_of_important_indexes is empty then we compare sum of all elements with the deadline 
-                for i in range(0, len(list_of_times)):
-                    _sum += list_of_times[i]
-            if self._deadline > _sum:
-                return list_of_times
+            if len(list_of_times) == self._valid_length_of_list:
+                if self._list_of_important_indexes:  
+                    for i in range(0, max(self._list_of_important_indexes)):
+                        _sum += list_of_times[i]
+                else:  # if _list_of_important_indexes is empty then we compare sum of all elements with the deadline 
+                    for i in range(0, len(list_of_times)):
+                        _sum += list_of_times[i]
+                if self._deadline > _sum:
+                    return list_of_times
         except:
             invalid_input = True
         return None
@@ -129,14 +133,14 @@ if __name__ == "__main__":
     }
     
     # hardcoded input
-    # optimized_schedule = OptimizedSchedule(data_to_dump)
+    optimized_schedule = OptimizedSchedule(data_to_dump)
     
     # input from the file
     file_handler = FileHandler()
     
-    file_handler.write_json_file('input.json.txt', data_to_dump)
-    data = file_handler.read_json_file('input.json.txt')
-    optimized_schedule = OptimizedSchedule(data)
+    # file_handler.write_json_file('input.json.txt', data_to_dump)
+    # data = file_handler.read_json_file('input.json.txt')
+    # optimized_schedule = OptimizedSchedule(data)
     
     # init schedule class to process the given list of lists to get the best valid list of times
     optimized_schedule.print_the_best_list()
