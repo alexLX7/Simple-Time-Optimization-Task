@@ -29,8 +29,26 @@ class FileHandler():
         return None
              
 class OptimizedSchedule():
-    def __init__(self, data: dict):
+    def __init__(self, raw_data: dict):
         super().__init__() 
+        
+        self._valid_input = True
+        self._list_of_lists_of_times = None
+        self._deadline = None
+        self._list_of_important_indexes = None
+        self._time_of_the_start = None
+        self._valid_length_of_list = None
+        
+        self.list_of_valid_lists_of_times = None
+        self.the_best_list = None
+        
+        data = self._check_validation_of_main_components(raw_data)
+        if data:
+            self._init(data)
+        else:
+            self._valid_input = False
+    
+    def _init(self, data: dict):
         self._list_of_lists_of_times = data['T'] # list_of_lists_of_times
         self._deadline = data['V'] # deadline
         self._list_of_important_indexes = data['I'] # list_of_important_indexes
@@ -40,10 +58,24 @@ class OptimizedSchedule():
         self.list_of_valid_lists_of_times = \
             self._validate_each_list_of_times(self._list_of_lists_of_times)
         self.the_best_list = self._find_the_best_list(self.list_of_valid_lists_of_times)
-        
+    
+    def _check_validation_of_main_components(self, raw_data: dict):
+        try:
+            dict_to_return = {
+                'T': raw_data['T'], # list_of_lists_of_times
+                'V': raw_data['V'], # deadline
+                'I': raw_data['I'], # list_of_important_indexes
+                'U': raw_data['U'], # time_of_the_start
+                'N': raw_data['N'], # valid_length_of_list
+            }
+            return dict_to_return
+        except:
+            print('Error: Input is not correct.')
+        return None
+    
     def print_the_best_list(self):
         if not self.the_best_list:
-            print("there are no any valid lists")
+            print("There are no any valid lists.")
         else:
             print(self.the_best_list) # print(*self.the_best_list, sep='\n')
         
@@ -52,7 +84,6 @@ class OptimizedSchedule():
             list_of_sum = []
             for i, v in enumerate(list_of_valid_lists_of_times):
                 list_of_sum.append(sum(range(len(v))))
-                
             index_of_the_best_list = list_of_sum.index(min(list_of_sum))
             return list_of_valid_lists_of_times[index_of_the_best_list]
         return None
@@ -120,9 +151,9 @@ if __name__ == "__main__":
     
     # input from the file
     file_handler = FileHandler()
-    file_handler.print_data(data_to_dump)
-    # file_handler.write_json_file('input.json.txt', data_to_dump)
-    data = file_handler.read_json_file('input.json.txt')
+    # file_handler.print_data(data_to_dump)
+    # file_handler.write_json_file('input.json', data_to_dump)
+    data = file_handler.read_json_file('input.json')
     optimized_schedule = OptimizedSchedule(data)
     
     # init schedule class to process the given list of lists to get the best valid list of times
