@@ -1,32 +1,46 @@
+import json
+
 
 class FileHandler():
     def __init__(self):
         super().__init__() 
         
-    def read_file(self, path: str):
-        try:
-            list_to_return = []
-            with open(path, 'r') as f:
-                list_of_lines = [line for line in f.read().split('\n') if line]
-            for line in list_of_lines:
-                numbers = [float(x) for x in line.split()]
-                list_to_return.append(numbers)
-            print(*list_to_return, '\n')
-            return list_to_return
-        except:
-            print("Error: cannot read the data from the file with this path:\n")
-            print("Path: " + str(path))
-        return None
-             
+    # def read_file(self, path: str):
+    #     try:
+    #         list_to_return = []
+    #         with open(path, 'r') as f:
+    #             list_of_lines = [line for line in f.read().split('\n') if line]
+    #         for line in list_of_lines:
+    #             numbers = [float(x) for x in line.split()]
+    #             list_to_return.append(numbers)
+    #         print(*list_to_return, '\n')
+    #         return list_to_return
+    #     except:
+    #         print("Error: cannot read the data from the file with this path:\n")
+    #         print("Path: " + str(path))
+    #     return None
+    
+    def write_json_file(self, path: str, data: dict):
+        with open(path, 'w') as f:
+            json.dump(data, f, indent=4)
+            
+    def read_json_file(self, path: str):
+        with open(path) as f:
+            data = json.load(f)
+            for attr, v in data.items():
+                print('{}: {}'.format(attr, v))
+        return data
              
 class OptimizedSchedule():
-    def __init__(self, list_of_lists_of_times: list, deadline: int, 
-                 list_of_important_indexes: list, time_of_the_start: int):
+    def __init__(self, data: dict):
+                #   list_of_lists_of_times: list, deadline: int, 
+                #  list_of_important_indexes: list, time_of_the_start: int):
         super().__init__() 
-        self._list_of_lists_of_times = list_of_lists_of_times
-        self._deadline = deadline
-        self._list_of_important_indexes = list_of_important_indexes
-        self._time_of_the_start = time_of_the_start
+        self._list_of_lists_of_times = data['T'] # list_of_lists_of_times
+        self._deadline = data['V'] # deadline
+        self._list_of_important_indexes = data['Indexes'] # list_of_important_indexes
+        self._time_of_the_start = data['U'] # time_of_the_start
+        self._valid_length_of_list = data['N'] # valid_length_of_list
         
         self.list_of_valid_lists_of_times = \
             self._validate_each_list_of_times(self._list_of_lists_of_times)
@@ -81,11 +95,14 @@ if __name__ == "__main__":
     
     # lists down below are the lists of time of processing each item
     # (each element is the time of processing current item with that index)
-    list_1 = [2, 2, 1, 1, 1]
-    list_2 = [1, 1, .5, .5, .5] # this one is the best out of all given samples
-    list_3 = [2, 2, 4, 4, 4]
-    list_4 = [1, 1, 1, .5, .5]
-    list_5 = [1, 2, 2, 2, 2]
+    T = [  # list_of_lists_with_times
+        [2, 2, 1, 1, 1],
+        [1, 1, .5, .5, .5], # this one is the best out of all given samples
+        [2, 2, 4, 4, 4],
+        [1, 1, 1, .5, .5],
+        [1, 2, 2, 2, 2]    
+    ]
+    
     
     # Main issue: if the sum of elements(until the last important index) more than a deadline value
     #  and there is missing one or more of important elements with indexes K, L (etc)
@@ -94,13 +111,36 @@ if __name__ == "__main__":
     # Main task: find the shortest time to process all the elements
     #  so there is one list to find: valid list with the minimum sum of all elements
     
+    data = {
+        'N': N,
+        'V': V,
+        'Indexes': tuple([K, L]),
+        'U': U,
+        'T': tuple(T)
+    }
+    
     # hardcoded input
     # optimized_schedule = OptimizedSchedule([list_1, list_2, list_3, list_4, list_5], V, [K, L], U)
     
     # input from the file
     file_handler = FileHandler()
-    list_of_lists_with_times = file_handler.read_file('in.txt')
-    optimized_schedule = OptimizedSchedule(list_of_lists_with_times, V, [K, L], U)
+    
+    # T = file_handler.read_file('in.txt')
+    # T_1 = file_handler.write_json_file('in.json.txt', [V, [K, L], U, T])
+    
+    # T = file_handler.write_json_file('in.json.txt',
+    #                                     {
+    #                                      'N': N,
+    #                                      'V': V,
+    #                                      'Indexes': tuple([K, L]),
+    #                                      'U': U,
+    #                                      'T': tuple(T)})
+    
+    # data = file_handler.read_json_file('in.json.txt')
+    
+    # optimized_schedule = OptimizedSchedule(T, V, [K, L], U)
+    
+    optimized_schedule = OptimizedSchedule(data)
     
     # init schedule class to process the given list of lists to get the best valid list of times
     optimized_schedule.print_the_best_list()
