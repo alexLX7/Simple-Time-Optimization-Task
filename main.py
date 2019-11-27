@@ -18,7 +18,7 @@ class FileHandler():
             print("Path: " + str(path))
         return None
             
-    def write_json_file(self, path: str, data: dict):
+    def write_json_file_wo_indent(self, path: str, data: dict):
         try:
             with open(path, 'w') as f:
                 json.dump(data, f)
@@ -161,8 +161,9 @@ if __name__ == "__main__":
     # input from the file
     file_handler = FileHandler()
     # file_handler.print_data(data_to_dump)
-    # file_handler.write_json_file('input.json', data_to_dump)
-    data = file_handler.read_json_file('input.json')
+    file_handler.write_json_file('input_0.json', data_to_dump)
+    file_handler.write_json_file_wo_indent('input_1.json', data_to_dump)
+    data = file_handler.read_json_file('input_0.json')
     optimized_schedule = OptimizedSchedule(data)
     
     # init schedule class to process the given list of lists to get the best valid list of times
