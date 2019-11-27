@@ -9,22 +9,31 @@ class FileHandler():
         for k, v in data.items():
                     print('{}: {}'.format(k, v))
     
-    def write_json_file(self, path: str, data: dict):
+    def write_json_file(self, path: str, data: dict, indent=4):
         try:
             with open(path, 'w') as f:
-                json.dump(data, f, indent=4)
+                json.dump(data, f, indent=indent)
         except:
-            print("Error: cannot write the data to the file with this path:\n")
+            print("Error: cannot write the data to the file with this path:")
             print("Path: " + str(path))
         return None
             
+    def write_json_file(self, path: str, data: dict):
+        try:
+            with open(path, 'w') as f:
+                json.dump(data, f)
+        except:
+            print("Error: cannot write the data to the file with this path:")
+            print("Path: " + str(path))
+        return None
+    
     def read_json_file(self, path: str):
         try:
             with open(path) as f:
                 data = json.load(f)
             return data
         except:
-            print("Error: cannot read the data from the file with this path:\n")
+            print("Error: cannot read the data from the file with this path:")
             print("Path: " + str(path))
         return None
              
