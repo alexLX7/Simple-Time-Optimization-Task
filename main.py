@@ -37,38 +37,108 @@ class FileHandler():
             print("Path: " + str(path))
         return None
              
+
 class OptimizedSchedule():
-    def __init__(self, raw_data: dict):
+    def __init__(self):
         super().__init__() 
+        self.list_of_lists_of_times = None # T
+        self.deadline = None # V
+        self.list_of_important_indexes = None # I
+        self.time_of_the_start = None # U
+        self.valid_length_of_list = None # N
+ 
+    def init(self, data: dict):
+        self.list_of_lists_of_times = data['T'] # list_of_lists_of_times
+        self.deadline = data['V'] # deadline
+        self.list_of_important_indexes = data['I'] # list_of_important_indexes
+        self.time_of_the_start = data['U'] # time_of_the_start
+        self.valid_length_of_list = data['N'] # valid_length_of_list
+ 
+    def find_the_best_list(self):
+        list_of_valid_lists_of_times = self._validate_each_list_of_times()
+        if list_of_valid_lists_of_times:
+            list_of_sum = []
+            for i, v in enumerate(list_of_valid_lists_of_times):
+                list_of_sum.append(sum(range(len(v))))
+            index_of_the_best_list = list_of_sum.index(min(list_of_sum))
+            return list_of_valid_lists_of_times[index_of_the_best_list]
+        return None
         
-        self._valid_input = True
-        self._list_of_lists_of_times = None
-        self._deadline = None
-        self._list_of_important_indexes = None
-        self._time_of_the_start = None
-        self._valid_length_of_list = None
+    def _validate_each_list_of_times(self):
+        raw_list_of_valid_lists_of_times = []
+        for i, list_of_times in enumerate(self.list_of_lists_of_times):
+            raw_list_of_valid_lists_of_times.append(self._check_validation(list_of_times))
+        list_of_valid_lists_of_times = [i for i in raw_list_of_valid_lists_of_times if i]
+        return list_of_valid_lists_of_times
         
-        self.list_of_valid_lists_of_times = None
-        self.the_best_list = None
+    def _check_validation(self, list_of_times: list):
+        _sum = self.time_of_the_start
+        try:
+            if len(list_of_times) == self.valid_length_of_list:
+                if self.list_of_important_indexes:  
+                    for i in range(0, max(self.list_of_important_indexes)):
+                        _sum += list_of_times[i]
+                else:  # if list_of_important_indexes is empty then we compare sum of all elements with the deadline 
+                    for i in range(0, len(list_of_times)):
+                        _sum += list_of_times[i]
+                if self.deadline > _sum:
+                    return list_of_times
+        except:
+            print('Error: Input is not correct.')
+        return None
         
-        data = self._check_validation_of_main_components(raw_data)
-        if data:
-            self._init(data)
-        else:
-            self._valid_input = False
+            
+class ScheduleManager():
+    def __init__(self):
+        super().__init__() 
+        self.file_handler = FileHandler()
     
-    def _init(self, data: dict):
-        self._list_of_lists_of_times = data['T'] # list_of_lists_of_times
-        self._deadline = data['V'] # deadline
-        self._list_of_important_indexes = data['I'] # list_of_important_indexes
-        self._time_of_the_start = data['U'] # time_of_the_start
-        self._valid_length_of_list = data['N'] # valid_length_of_list
-        
-        self.list_of_valid_lists_of_times = \
-            self._validate_each_list_of_times(self._list_of_lists_of_times)
-        self.the_best_list = self._find_the_best_list(self.list_of_valid_lists_of_times)
+    def set_schedule_by_raw_data(self, data: dict):
+        schedule = OptimizedSchedule()
+        schedule.list_of_lists_of_times = data['T'] # list_of_lists_of_times
+        schedule.deadline = data['V'] # deadline
+        schedule.list_of_important_indexes = data['I'] # list_of_important_indexes
+        schedule.time_of_the_start = data['U'] # time_of_the_start
+        schedule.valid_length_of_list = data['N'] # valid_length_of_list
+        return schedule
     
-    def _check_validation_of_main_components(self, raw_data: dict):
+    def _dump(self, schedule: OptimizedSchedule):
+        data = {
+            'T': tuple(schedule.list_of_lists_of_times),
+            'V': schedule.deadline,
+            'I': tuple(schedule.list_of_important_indexes),
+            'U': schedule.time_of_the_start,
+            'N': schedule.valid_length_of_list
+        }
+        return data
+    
+    def write_the_best_list_to_file(self, path: str, schedule: OptimizedSchedule):
+        try:
+            pass
+            # data = self._dump(schedule)
+            # the_best_list = schedule.find_the_best_list()
+        except:
+            print('Error: Could not find the best list.')
+        return None
+    
+    def write_data_to_json(self, path: str, schedule: OptimizedSchedule):
+        try:
+            data = self._dump_to_dict(schedule)
+            self.file_handler.write_json_file(path, data)
+        except:
+            print('Error: Cannot write the data to the file.')
+        return None
+    
+    def read_data_from_json(self, path: str):
+        try:
+            raw_data = self.file_handler.read_json_file(path)
+            return self.set_schedule_by_raw_data(
+                self._get_correct_dict_out_of_raw_data(raw_data))
+        except:
+            print('Error: Cannot read the data from the file.')
+        return None
+    
+    def _get_correct_dict_out_of_raw_data(self, raw_data: dict):
         try:
             dict_to_return = {
                 'T': raw_data['T'], # list_of_lists_of_times
@@ -82,47 +152,8 @@ class OptimizedSchedule():
             print('Error: Input is not correct.')
         return None
     
-    def print_the_best_list(self):
-        if not self.the_best_list:
-            print("There are no any valid lists.")
-        else:
-            print(self.the_best_list) # print(*self.the_best_list, sep='\n')
-        
-    def _find_the_best_list(self, list_of_valid_lists_of_times: list):
-        if list_of_valid_lists_of_times:
-            list_of_sum = []
-            for i, v in enumerate(list_of_valid_lists_of_times):
-                list_of_sum.append(sum(range(len(v))))
-            index_of_the_best_list = list_of_sum.index(min(list_of_sum))
-            return list_of_valid_lists_of_times[index_of_the_best_list]
-        return None
-        
-    def _validate_each_list_of_times(self, list_of_lists_of_times: list):
-        raw_list_of_valid_lists_of_times = []
-        for i, list_of_times in enumerate(list_of_lists_of_times):
-            raw_list_of_valid_lists_of_times.append(self._check_validation(list_of_times))
-        list_of_valid_lists_of_times = [i for i in raw_list_of_valid_lists_of_times if i]
-        return list_of_valid_lists_of_times
-        
-    def _check_validation(self, list_of_times: list):
-        _sum = self._time_of_the_start
-        try:
-            if len(list_of_times) == self._valid_length_of_list:
-                if self._list_of_important_indexes:  
-                    for i in range(0, max(self._list_of_important_indexes)):
-                        _sum += list_of_times[i]
-                else:  # if _list_of_important_indexes is empty then we compare sum of all elements with the deadline 
-                    for i in range(0, len(list_of_times)):
-                        _sum += list_of_times[i]
-                if self._deadline > _sum:
-                    return list_of_times
-        except:
-            invalid_input = True
-        return None
-        
-        
-if __name__ == "__main__":
     
+def demo_0():
     # given values
     N = 5 # N is number of items, just the length of the list
     V = 4 # V is deadline, items with important indexes must be processed by this value of time
@@ -154,18 +185,23 @@ if __name__ == "__main__":
         'U': U,
         'T': tuple(T)
     }
+    schedule = OptimizedSchedule()
+    schedule.init(data_to_dump)
     
-    # hardcoded input
-    # optimized_schedule = OptimizedSchedule(data_to_dump)
+    sm = ScheduleManager()
+    sm.write_data_to_json('input_0.json', schedule)
+
+
+def demo_1():
     
-    # input from the file
-    file_handler = FileHandler()
-    # file_handler.print_data(data_to_dump)
-    file_handler.write_json_file('input_0.json', data_to_dump)
-    file_handler.write_json_file_wo_indent('input_1.json', data_to_dump)
-    data = file_handler.read_json_file('input_0.json')
-    optimized_schedule = OptimizedSchedule(data)
+    sm = ScheduleManager()
+    schedule = sm.read_data_from_json('input_0.json')
+    sm.write_data_to_json('input_1.json', schedule)
     
-    # init schedule class to process the given list of lists to get the best valid list of times
-    optimized_schedule.print_the_best_list()
-    # the best list of times out of all given samples is [1, 1, .5, .5, .5]
+    print(schedule.find_the_best_list())
+
+        
+if __name__ == "__main__":
+    
+    demo_1()
+    
