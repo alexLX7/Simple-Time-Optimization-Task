@@ -27,6 +27,26 @@ class FileHandler():
             print("Path: " + str(path))
         return None
     
+    def write_list_to_file(self, path: str, best_list: list, list_of_valid_lists=[]):
+        try:
+            if best_list:
+                with open(path, 'w', encoding="utf-8") as f:
+                    f.write("{}\n".format('The best list:'))
+                    for item in best_list:
+                        f.write("{}\n".format(item))
+                    
+                    if list_of_valid_lists:
+                        f.write("\n\n{}\n".format('All valid lists:'))
+                        for item in list_of_valid_lists:
+                            f.write("{}\n".format(item))
+            else:
+                with open(path, 'w', encoding="utf-8") as f:
+                    f.write("{}".format('[]'))
+        except:
+            print("Error: cannot write the data to the file with this path:")
+            print("Path: " + str(path))
+        return None
+    
     def read_json_file(self, path: str):
         try:
             with open(path) as f:
@@ -64,6 +84,10 @@ class OptimizedSchedule():
             return list_of_valid_lists_of_times[index_of_the_best_list]
         return None
         
+    def find_all_valid_lists(self):
+        list_of_valid_lists_of_times = self._validate_each_list_of_times()
+        return list_of_valid_lists_of_times
+    
     def _validate_each_list_of_times(self):
         raw_list_of_valid_lists_of_times = []
         for i, list_of_times in enumerate(self.list_of_lists_of_times):
@@ -114,16 +138,17 @@ class ScheduleManager():
     
     def write_the_best_list_to_file(self, path: str, schedule: OptimizedSchedule):
         try:
-            pass
-            # data = self._dump(schedule)
-            # the_best_list = schedule.find_the_best_list()
+            data = self._dump(schedule)
+            the_best_list = schedule.find_the_best_list()
+            list_of_valid_lists = schedule.find_all_valid_lists()
+            self.file_handler.write_list_to_file(path, the_best_list, list_of_valid_lists)
         except:
             print('Error: Could not find the best list.')
         return None
     
     def write_data_to_json(self, path: str, schedule: OptimizedSchedule):
         try:
-            data = self._dump_to_dict(schedule)
+            data = self._dump(schedule)
             self.file_handler.write_json_file(path, data)
         except:
             print('Error: Cannot write the data to the file.')
@@ -198,7 +223,8 @@ def demo_1():
     schedule = sm.read_data_from_json('input_0.json')
     sm.write_data_to_json('input_1.json', schedule)
     
-    print(schedule.find_the_best_list())
+    sm.write_the_best_list_to_file('the_best_option.txt', schedule)
+    # print(schedule.find_the_best_list())
 
         
 if __name__ == "__main__":
