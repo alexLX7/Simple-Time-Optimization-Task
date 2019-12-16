@@ -178,13 +178,16 @@ class ScheduleManager():
         return None
     
     
-def default_setup():
+def demo_0():
+    # given values
     N = 5 # N is number of items, just the length of the list
     V = 4 # V is deadline, items with important indexes must be processed by this value of time
     K, L = 2, 4 # K and L are two important indexes
     I = [K, L] # list of important indexes
     U = 0 # the time of the start
     
+    # lists down below are the lists of time of processing each item
+    # (each element is the time of processing current item with that index)
     T = [  # list_of_lists_with_times
         [2, 2, 1, 1, 1],
         [1, 1, .5, .5, .5], # this one is the best out of all given samples
@@ -192,6 +195,13 @@ def default_setup():
         [1, 1, 1, .5, .5],
         [1, 2, 2, 2, 2]    
     ]
+    
+    # Main issue: if the sum of elements(until the last important index) more than a deadline value
+    #  and there is missing one or more of important elements with indexes K, L (etc)
+    #  then the current list is not valid
+    
+    # Main task: find the shortest time to process all the elements
+    #  so there is one list to find: valid list with the minimum sum of all elements
     
     data_to_dump = {
         'N': N,
@@ -219,6 +229,5 @@ def demo():
         
 if __name__ == "__main__":
     
-    # to do: GUI
     demo()
     
