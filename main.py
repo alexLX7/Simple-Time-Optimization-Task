@@ -1,4 +1,507 @@
 import json
+import sys
+import random
+from time import sleep
+from customGUI import Ui_MainWindow
+from PyQt5 import QtGui, QtCore, QtWidgets
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+
+
+class GlobalVariables: 
+    def __init__(self):
+        self._dict_eng = dict(  # usage: self._global_variables.default_dict.get('
+            yes = 'Yes',
+            no = 'No',
+            instance = 'Instance ',
+            file = 'File',
+            open = 'Open Project...',
+            close_project = 'Close Project',
+            export_instance_as_png = 'Export instance as PNG',
+            instructions = 'Instructions',
+            show_instructions = 'Show instructions',
+            about = 'About',
+            show_about = 'Show about',
+            save_file = 'Save File',
+            open_project = 'Open Project',
+            options = 'Options',
+            additional_options_of_the_instance = 'Additional options',
+            update_the_output = 'Update the output',
+            confirm_your_choice = 'Confirm Your choice',
+            are_you_sure_you_want_to_delete = 'Are you sure you want to delete all instances?',
+            add_a_new_instance_menu = 'Add a new instance menu',
+            delete_all_instances = 'Delete all instances',
+            hide_current_instance = 'Hide current instance',
+            confirm_exit = 'Confirm exit',
+            are_you_sure_you_want_to_exit = 'Are you sure you want to exit?',
+            about_window_title = 'About',
+            about_window_creators_name = 'Pavlov Alex',
+            about_window_creators_github = 'https://github.com/alexLAP7'
+        )
+        self._dict_rus = dict(
+            yes = 'Да',
+            no = 'Нет',
+            instance = 'Экземпляр объекта ',
+            file = 'Файл',
+            open = 'Открыть проект...',
+            close_project = 'Закрыть проект',
+            export_instance_as_png = 'Экспортировать как PNG',
+            instructions = 'Инструкции',
+            show_instructions = 'Показать инструкции',
+            about = 'Об авторе',
+            show_about = 'Показать информацию об авторе',
+            save_file = 'Сохранить файл',
+            open_project = 'Открыть проект',
+            options = 'Настройки',
+            additional_options_of_the_instance = 'Дополнительные настройки',
+            update_the_output = 'Обновить отображение',
+            confirm_your_choice = 'Подтвердите свой выбор',
+            are_you_sure_you_want_to_delete = 'Вы уверены, что хотите удалить все объекты?',
+            add_a_new_instance_menu = 'Добавить меню для нового экземпляра объекта',
+            delete_all_instances = 'Удалить все экземпляры объектов',
+            hide_current_instance = 'Скрыть данный экземпляр объекта',
+            confirm_exit = 'Подтвердите выход',
+            are_you_sure_you_want_to_exit = 'Вы уверены, что хотите выйти?',
+            about_window_title = 'Об авторе',
+            about_window_creators_name = 'Павлов Александр',
+            about_window_creators_github = 'https://github.com/alexLAP7'
+        )
+        self.default_dict = self._dict_rus
+
+
+class MenuInstance:
+    def __init__(self):
+        self._global_variables = GlobalVariables()
+        self.id_of_instance = 0  # without id you couldn't get proper instance by call from another class
+        self.name = self._global_variables.default_dict.get('instance')  # name of the instance
+        self.hide = False  # field gives ability to hide instance
+        # 'hide' is used as example of how to connect gui and logic parts
+    
+
+class GrowingTextEdit(QtWidgets.QTextEdit):
+    def __init__(self, *args, **kwargs):
+        super(GrowingTextEdit, self).__init__(*args, **kwargs)
+        self.document().contentsChanged.connect(self.sizeChange)
+        self.heightMin = 40
+        self.heightMax = 40
+
+    def sizeChange(self):
+        docHeight = self.document().size().height()
+        if self.heightMin <= docHeight <= self.heightMax:
+            self.setMinimumHeight(docHeight)
+        if len(self.document().toPlainText()) > 50:  # 50 is number of chars
+            self.textCursor().deletePreviousChar()
+
+
+class CollapsibleBox(QtWidgets.QWidget):  # dynamically expandable box of gui elements
+    def __init__(self, title="", parent=None):
+
+        super(CollapsibleBox, self).__init__(parent)
+
+        self.toggle_button = QtWidgets.QToolButton(
+            text=title, checkable=True, checked=False)
+        self.toggle_button.setStyleSheet("QToolButton { border: none; }")
+        self.toggle_button.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.toggle_button.setArrowType(QtCore.Qt.RightArrow)
+        self.toggle_button.pressed.connect(self.on_pressed)
+
+        self.toggle_animation = QtCore.QParallelAnimationGroup(self)
+
+        self.content_area = QtWidgets.QScrollArea(
+            maximumHeight=0, minimumHeight=0)
+        self.content_area.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        self.content_area.setFrameShape(QtWidgets.QFrame.NoFrame)
+
+        lay = QtWidgets.QVBoxLayout(self)
+        lay.setSpacing(0)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.addWidget(self.toggle_button)
+        lay.addWidget(self.content_area)
+
+        self.toggle_animation.addAnimation(
+            QtCore.QPropertyAnimation(self, b"minimumHeight"))
+        self.toggle_animation.addAnimation(
+            QtCore.QPropertyAnimation(self, b"maximumHeight"))
+        self.toggle_animation.addAnimation(
+            QtCore.QPropertyAnimation(self.content_area, b"maximumHeight"))
+
+    @QtCore.pyqtSlot()
+    def on_pressed(self):
+
+        sleep(0.25)  # slows down so it won't lag because of users spam
+        checked = self.toggle_button.isChecked()
+        self.toggle_button.setArrowType(
+            QtCore.Qt.DownArrow if not checked else QtCore.Qt.RightArrow)
+        self.toggle_animation.setDirection(
+            QtCore.QAbstractAnimation.Forward
+            if not checked
+            else QtCore.QAbstractAnimation.Backward)
+        self.toggle_animation.start()
+
+    def setContentLayout(self, layout):
+
+        lay = self.content_area.layout()
+        del lay
+        self.content_area.setLayout(layout)
+        collapsed_height = (
+            self.sizeHint().height() - self.content_area.maximumHeight())
+        content_height = layout.sizeHint().height()
+        for i in range(self.toggle_animation.animationCount()):
+            animation = self.toggle_animation.animationAt(i)
+            animation.setDuration(300)
+            animation.setStartValue(collapsed_height)
+            animation.setEndValue(collapsed_height + content_height)
+
+        content_animation = self.toggle_animation.animationAt(
+            self.toggle_animation.animationCount() - 1)
+        content_animation.setDuration(300)
+        content_animation.setStartValue(0)
+        content_animation.setEndValue(content_height)
+
+
+class Connector:
+    def __init__(self):
+        self._global_variables = GlobalVariables()
+        self.list_of_widgets = []
+        self.list_of_menu_instances = []
+        self.number_of_menu_instances = 0
+        self.current_widget_to_export = None
+
+
+class InstructionWindow(QtWidgets.QMainWindow):
+    def __init__(self, parent=None):
+        super(InstructionWindow, self).__init__(parent)
+        self._global_variables = GlobalVariables()
+        self.init_layout()
+
+    def init_layout(self):
+        w = QWidget()
+        self.setCentralWidget(w)
+        layout = QVBoxLayout(w)
+        layout.setSpacing(1)
+        layout.setContentsMargins(2, 2, 2, 2)
+        w.setLayout(layout)
+        
+        self.title = self._global_variables.default_dict.get('instructions') 
+        self.left = 100
+        self.top = 100
+        self.windowWidth = 300
+        self.windowHeight = 400
+        self.setWindowTitle(self.title)  
+        self.setGeometry(self.left, self.top, self.windowWidth, self.windowHeight) 
+
+        scroll = QtWidgets.QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        layout.addWidget(scroll)
+        scrollContents = QtWidgets.QWidget()
+        scroll.setWidget(scrollContents)
+        text_layout = QtWidgets.QVBoxLayout(scrollContents)
+        # font = QtGui.QFont()
+        # font.setPointSize(11)
+
+        frame = QtWidgets.QFrame()
+        frame.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Plain)
+        vbox = QtWidgets.QVBoxLayout()
+        frame.setLayout(vbox)
+
+        label_text = QLabel()
+        label_text.setText("Text")
+        vbox.addWidget(label_text)
+
+        verticalSpacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
+                                                QtWidgets.QSizePolicy.Expanding)
+        vbox.addItem(verticalSpacer)
+        text_layout.addWidget(frame)
+
+
+class AboutWindow(QtWidgets.QMainWindow):  # have to change but it works for now
+    def __init__(self, parent=None):
+        super(AboutWindow, self).__init__(parent)
+        self._global_variables = GlobalVariables()
+        self.title = self._global_variables.default_dict.get('about_window_title') 
+        self.left = 100
+        self.top = 100
+        self.windowWidth = 300
+        self.windowHeight = 400
+        self.setWindowTitle(self.title)  
+        self.setGeometry(self.left, self.top, self.windowWidth, self.windowHeight) 
+
+        w = QWidget()
+        self.setCentralWidget(w)
+        layout = QVBoxLayout(w)
+        layout.setSpacing(1)
+        layout.setContentsMargins(2, 2, 2, 2)
+        w.setLayout(layout)
+        
+        frame = QtWidgets.QFrame()
+        frame.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Plain)
+        vbox = QtWidgets.QVBoxLayout()
+        frame.setLayout(vbox)
+
+        label_creator_name = QLabel()
+        creator_name = self._global_variables.default_dict.get('about_window_creators_name') 
+        label_creator_name.setText(creator_name)
+        vbox.addWidget(label_creator_name)
+        
+        label_creator_github = QLabel()
+        creator_github = self._global_variables.default_dict.get('about_window_creators_github') 
+        label_creator_github.setText(creator_github)
+        vbox.addWidget(label_creator_github)
+        
+        vbox.setAlignment(Qt.AlignCenter)
+        layout.addWidget(frame)
+
+
+class Application(QtWidgets.QMainWindow):
+    def __init__(self, parent=None):
+        QtWidgets.QWidget.__init__(self, parent)
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        self._global_variables = GlobalVariables()
+        self.title = 'Application'
+        self.setWindowTitle(self.title)
+        self.connector = None
+        self.text_edit = QTextEdit(self)
+        self.text_edit.setReadOnly(True)
+        self.setCentralWidget(self.text_edit)
+
+        self.instruction_window = InstructionWindow()
+        self.about_window = AboutWindow()
+
+        self.showMaximized()
+        self.mainMenu = QMenuBar(self)
+        self.setMenuBar(self.mainMenu)
+        
+        self.set_a_project()
+        
+        menu_file = self.mainMenu.addMenu(
+            self._global_variables.default_dict.get('file'))
+        
+        file_action_export_as_png = menu_file.addAction(
+            self._global_variables.default_dict.get('export_instance_as_png'))
+        file_action_export_as_png.triggered.connect(self.export_instance_as_png)
+        
+        file_action_close = menu_file.addAction(
+            self._global_variables.default_dict.get('close_project'))
+        file_action_close.triggered.connect(self.close_application)
+
+        menu_instructions = self.mainMenu.addMenu(
+            self._global_variables.default_dict.get('instructions'))
+        instructions_action_show = menu_instructions.addAction(
+            self._global_variables.default_dict.get('show_instructions'))
+        instructions_action_show.triggered.connect(self.show_instructions)
+
+        menu_about = self.mainMenu.addMenu(
+            self._global_variables.default_dict.get('about'))
+        about_action_show = menu_about.addAction(
+            self._global_variables.default_dict.get('show_about'))
+        about_action_show.triggered.connect(self.show_about)
+
+    def export_instance_as_png(self):
+        try:
+            name, _ = QtWidgets.QFileDialog.getSaveFileName(self, 
+                                                        self._global_variables.default_dict.get(
+                                                            'save_file'),
+                                                         '.png', "Image (*.png *.jpg *.tif)")
+            if name:
+                img = self.connector.current_widget_to_export.grab()
+                img.save(name)
+        except:
+            print('Oops! An Error: There is a problem with a file, which you have tried to save.')
+
+    def show_instructions(self):
+        self.instruction_window.show()
+
+    def show_about(self):
+        self.about_window.show()
+
+    def open_file_dialog(self):
+        try:
+            self.set_a_project()
+            
+            # filename, _ = QFileDialog.getOpenFileName(self,
+            #                                            self._global_variables.default_dict.get(
+            #                                                'open_project'),
+            #                                            'c:\\',
+            #                                             "Excel Files (*.xls *.xml *.xlsx *.xlsm)",
+            #                                           options=QFileDialog.DontUseNativeDialog)
+            # if (filename):
+            #     # self.close_a_project()  # close all active subwindows and dockable windows
+            #     self.set_a_project(filename)
+        except:
+            print('Oops! An Error: There is a problem with a file, which you have tried to open.\n'
+                  ' Make sure, it has the right extension')
+
+    def close_a_project(self):
+        try:
+            self.close_application()
+        except:
+            pass
+
+    def set_options_dock(self):  
+        self.dockWidget = QDockWidget(self._global_variables.default_dict.get('options'), self)
+        self.connector.list_of_widgets.append(self.dockWidget)
+        self.dockWidget.setFeatures(QtWidgets.QDockWidget.DockWidgetFloatable |
+                                    QtWidgets.QDockWidget.DockWidgetMovable)
+        widget = QWidget(self.dockWidget)
+        qvbox_layout = QVBoxLayout(widget)
+        qvbox_layout.setSpacing(1)
+        qvbox_layout.setContentsMargins(2, 2, 2, 2)
+        widget.setLayout(qvbox_layout)
+
+        button = QPushButton()
+        button_update_the_output = QPushButton()
+        button_update_the_output.setText(self._global_variables.default_dict.get('update_the_output'))
+        button_update_the_output.setStyleSheet('QPushButton {background-color:rgb(170, 255, 0); color: black;}')
+        qvbox_layout.addWidget(button_update_the_output)
+
+        scroll = QtWidgets.QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        qvbox_layout.addWidget(scroll)
+        scrollContents = QtWidgets.QWidget()
+        scroll.setWidget(scrollContents)
+
+        self.QVBox_layout_of_dock_options = QtWidgets.QVBoxLayout(scrollContents)
+        font = QtGui.QFont()
+        font.setPointSize(11)
+
+        def button_update_the_output_clicked(arg):
+            self.clear_textedit()            
+
+        button_update_the_output.clicked.connect(button_update_the_output_clicked)
+
+        def button_add_a_new_instance_menu_new_clicked(arg):
+            self.set_option_fields()
+
+        def button_delete_all_clicked(arg):
+            msg = QMessageBox()
+            msg.setWindowTitle(self._global_variables.default_dict.get('confirm_your_choice'))
+            msg.setText(self._global_variables.default_dict.get('are_you_sure_you_want_to_delete'))
+            okButton = msg.addButton(self._global_variables.default_dict.get('yes'),
+                                      QMessageBox.AcceptRole)
+            msg.addButton(self._global_variables.default_dict.get('no'), QMessageBox.RejectRole)
+            msg.exec()
+            if msg.clickedButton() == okButton:
+                self.connector.list_of_menu_instances.clear()
+                self.connector.number_of_menu_instances = 0
+                self.connector.current_widget_to_export = None
+                self.statusBar().showMessage("")
+                self.dockWidget.close()
+                self.set_options_dock()
+            else:
+                pass
+
+        button_add_a_new_instance_menu = QPushButton()
+        button_add_a_new_instance_menu.setText(self._global_variables.default_dict.get('add_a_new_instance_menu'))
+        button_add_a_new_instance_menu.clicked.connect(button_add_a_new_instance_menu_new_clicked)
+        qvbox_layout.addWidget(button_add_a_new_instance_menu)
+
+        button_delete_all = QPushButton()
+        button_delete_all.setText(self._global_variables.default_dict.get('delete_all_instances'))
+        button_delete_all.clicked.connect(button_delete_all_clicked)
+        qvbox_layout.addWidget(button_delete_all)
+
+        self.dockWidget.setWidget(widget)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dockWidget)
+
+    def set_option_fields(self):
+
+        instance_menu = MenuInstance()
+        instance_menu.id_of_instance = self.connector.number_of_menu_instances
+        self.connector.number_of_menu_instances = \
+            self.connector.number_of_menu_instances + 1
+        self.connector.list_of_menu_instances.append(instance_menu)
+
+        MinimumWidth = 100
+        MaximumWidth = 150
+
+        def checkBox_hide_clicked(arg):
+            if checkBox_hide.isChecked():
+                self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].hide = True
+            else:
+                self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].hide = False
+            # hide action
+            # self.clear_textedit()            
+
+        frame = QtWidgets.QFrame()
+        frame.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Plain)
+
+        vbox = QtWidgets.QVBoxLayout()
+        frame.setLayout(vbox)
+        name = GrowingTextEdit()
+        name.setText(instance_menu.name + str(self.connector.number_of_menu_instances))
+        self.connector.list_of_menu_instances[instance_menu.id_of_instance].name = name.toPlainText()
+        name.setMinimumHeight(27)
+        name.setMaximumHeight(27)
+
+        def name_changed():  # maybe there are no any possible mistakes but I'll use try/except anyways
+            try:
+                self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].name = name.toPlainText()
+            except:
+                self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].name = 'Incorrect symbols in name'
+
+        name.textChanged.connect(name_changed)
+
+        checkBox_hide = QCheckBox()
+        checkBox_hide.setText(self._global_variables.default_dict.get('hide_current_instance'))
+        checkBox_hide.setChecked(False)
+        checkBox_hide.toggled.connect(checkBox_hide_clicked)
+        vbox.addWidget(checkBox_hide)
+
+        content = QtWidgets.QWidget()
+        vlay = QtWidgets.QVBoxLayout(content)
+        box = CollapsibleBox(self._global_variables.default_dict.get('additional_options_of_the_instance'))
+        
+        vlay.addWidget(name)
+        vlay.addWidget(box)
+        
+        verticalSpacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
+                                            QtWidgets.QSizePolicy.Expanding)
+        vlay.addItem(verticalSpacer)    
+        
+        box.setContentLayout(vbox)
+        vlay.addStretch()
+        
+        frame_ = QtWidgets.QFrame()
+        frame_.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Plain)
+        
+        frame_.setLayout(vlay)
+        self.QVBox_layout_of_dock_options.addWidget(frame_)
+
+    def set_a_project(self):        
+        if self.connector is None:  # we init only one table with a plot for a one project
+            self.connector = Connector()
+            self.connector.current_widget_to_export = self.text_edit
+            self.set_options_dock()
+        
+    def clear_textedit(self):
+        self.text_edit.clear()
+        self.text_edit.setText('hey it works')
+        print('hey it works')
+
+    def close_application(self):
+        msg = QMessageBox()
+        msg.setWindowTitle(self._global_variables.default_dict.get('confirm_exit'))
+        msg.setText(self._global_variables.default_dict.get('are_you_sure_you_want_to_exit'))
+        okButton = msg.addButton(self._global_variables.default_dict.get('yes'),
+                                  QMessageBox.AcceptRole)
+        msg.addButton(self._global_variables.default_dict.get('no'), QMessageBox.RejectRole)
+        msg.exec()
+        if msg.clickedButton() == okButton:
+            sys.exit()            
+        else:
+            pass
+
+    def closeEvent(self, event):
+        event.ignore()
+        self.close_application()
 
 
 class FileHandler():
@@ -208,7 +711,6 @@ def default_setup():
 
 
 def demo():
-    
     sm = ScheduleManager()
     schedule = sm.read_data_from_json('input_0.json')
     sm.write_data_to_json('input_1.json', schedule)
@@ -216,9 +718,10 @@ def demo():
     sm.write_the_best_list_to_file('the_best_option.txt', schedule)
     # print(schedule.find_the_best_list())
 
-        
 if __name__ == "__main__":
-    
-    # to do: GUI
-    demo()
+    app = QtWidgets.QApplication(sys.argv)
+    app.setStyle("Fusion")
+    myapp = Application()
+    myapp.show()
+    sys.exit(app.exec_()) 
     
