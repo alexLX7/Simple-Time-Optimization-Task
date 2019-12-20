@@ -74,8 +74,11 @@ class MenuInstance:
         self._global_variables = GlobalVariables()
         self.id_of_instance = 0  # without id you couldn't get proper instance by call from another class
         self.name = self._global_variables.default_dict.get('instance')  # name of the instance
-        self.hide = False  # field gives ability to hide instance
-        # 'hide' is used as example of how to connect gui and logic parts
+        self.V = 0 # deadline float
+        self.N = 0 # number of items, just the length of the list int
+        self.I = [] # list of important indexes
+        self.U = 0 # time of start float
+        self.T = [] # list of times
     
 
 class GrowingTextEdit(QtWidgets.QTextEdit):
@@ -89,7 +92,7 @@ class GrowingTextEdit(QtWidgets.QTextEdit):
         docHeight = self.document().size().height()
         if self.heightMin <= docHeight <= self.heightMax:
             self.setMinimumHeight(docHeight)
-        if len(self.document().toPlainText()) > 50:  # 50 is number of chars
+        if len(self.document().toPlainText()) > 200:  # 200 is number of chars
             self.textCursor().deletePreviousChar()
 
 
@@ -416,17 +419,7 @@ class Application(QtWidgets.QMainWindow):
         self.connector.list_of_menu_instances.append(instance_menu)
 
         MinimumWidth = 100
-        MaximumWidth = 150
-
-        def checkBox_hide_clicked(arg):
-            if checkBox_hide.isChecked():
-                self.connector.list_of_menu_instances[
-                    instance_menu.id_of_instance].hide = True
-            else:
-                self.connector.list_of_menu_instances[
-                    instance_menu.id_of_instance].hide = False
-            # hide action
-            # self.clear_textedit()            
+        MaximumWidth = 150   
 
         frame = QtWidgets.QFrame()
         frame.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Plain)
@@ -439,7 +432,7 @@ class Application(QtWidgets.QMainWindow):
         name.setMinimumHeight(27)
         name.setMaximumHeight(27)
 
-        def name_changed():  # maybe there are no any possible mistakes but I'll use try/except anyways
+        def name_changed():  
             try:
                 self.connector.list_of_menu_instances[
                     instance_menu.id_of_instance].name = name.toPlainText()
@@ -449,17 +442,246 @@ class Application(QtWidgets.QMainWindow):
 
         name.textChanged.connect(name_changed)
 
-        checkBox_hide = QCheckBox()
-        checkBox_hide.setText(self._global_variables.default_dict.get('hide_current_instance'))
-        checkBox_hide.setChecked(False)
-        checkBox_hide.toggled.connect(checkBox_hide_clicked)
-        vbox.addWidget(checkBox_hide)
+        # def create_schedule():
+        #     N = 5 # N is int number of items, just the length of the list
+        #     V = 4 # V is float deadline, items with important indexes must be processed by this value of time
+        #     K, L = 2, 4 # K and L are two important indexes
+        #     I = [K, L] # list of important indexes
+        #     U = 0 # the time of the float start
+            
+        #     T = [  # list_of_lists_with_times
+        #         [2, 2, 1, 1, 1],
+        #         [1, 1, .5, .5, .5], # this one is the best out of all given samples
+        #         [2, 2, 4, 4, 4],
+        #         [1, 1, 1, .5, .5],
+        #         [1, 2, 2, 2, 2]    
+        #     ]
+            
+        #     data_to_dump = {
+        #         'N': N,
+        #         'V': V,
+        #         'I': tuple([K, L]),
+        #         'U': U,
+        #         'T': tuple(T)
+        #     }
+        #     schedule = OptimizedSchedule()
+        #     schedule.init(data_to_dump)
+
+        def get_values_to_make_schedule():
+            data_to_return = {
+                'N': self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].N,
+                'V': self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].V,
+                'I': tuple(
+                    self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].I
+                    ),
+                'U': self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].U,
+                'T': tuple(
+                    self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].T
+                )
+            }
+            return data_to_return 
+
+        def print_all_values():
+            schedule = OptimizedSchedule()
+            schedule.init(get_values_to_make_schedule())
+            self.text_edit.append(str(schedule))
+
+        def print_list(_list: list):
+            try:
+                self.text_edit.append(str(_list))
+            except:
+                pass
+            
+
+        # def print_list(list_of_frequency: list, number_of_elements: int):
+        #     self.text_edit.clear()
+        #     if list_of_frequency:
+        #         for i, v in enumerate(list_of_frequency):
+        #             if i < number_of_elements:
+        #                 try:
+        #                     self.text_edit.append(
+        #                         self._global_variables.default_dict.get('value') + str(v[0]) + ', ' +
+        #                         self._global_variables.default_dict.get('frequency') + str(v[1]))
+        #                     # self.text_edit.append(
+        #                     #     self._global_variables.default_dict.get('value') + str(v[0]) + ', ' +
+        #                     #     self._global_variables.default_dict.get('frequency') + str(v[1]))
+        #                 except:
+        #                     pass
+
+        button_pretty_print_to_text_edit = QPushButton()
+        button_pretty_print_to_text_edit.setText("")
+            # self._global_variables.default_dict.get('pretty_print_tree_to_text_edit'))
+        def button_pretty_print_to_text_edit_clicked(arg):
+            print_all_values()
+        button_pretty_print_to_text_edit.clicked.connect(button_pretty_print_to_text_edit_clicked)
+
+        empty_label_N = QLabel('N:')
+        vbox.addWidget(empty_label_N)
+
+        def set_number_of_elements_N():
+            spinBox_N.setMaximum(100)
+            if spinBox_N.value() <= spinBox_N.value():
+                self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].N = int(
+                        str(spinBox_N.value()))
+
+        spinBox_N = QSpinBox()
+        spinBox_N.valueChanged.connect(set_number_of_elements_N)
+        vbox.addWidget(spinBox_N)
+        
+        empty_label_0 = QLabel('')
+        vbox.addWidget(empty_label_0)
+        
+        empty_label_V = QLabel('V:')
+        vbox.addWidget(empty_label_V)
+        
+        def set_number_of_elements_V():
+            spinBox_V.setMaximum(100)
+            if spinBox_V.value() <= spinBox_V.value():
+                self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].V = float(
+                        str(spinBox_V.value()))
+
+        spinBox_V = QDoubleSpinBox()
+        spinBox_V.valueChanged.connect(set_number_of_elements_V)
+        vbox.addWidget(spinBox_V)
+
+        empty_label_1 = QLabel('')
+        vbox.addWidget(empty_label_1)
+
+        empty_label_U = QLabel('U:')
+        vbox.addWidget(empty_label_U)
+
+        def set_number_of_elements_U():
+            spinBox_U.setMaximum(100)
+            if spinBox_U.value() <= spinBox_U.value():
+                self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].U = float(
+                        str(spinBox_U.value()))
+
+        spinBox_U = QDoubleSpinBox()
+        spinBox_U.valueChanged.connect(set_number_of_elements_U)
+        vbox.addWidget(spinBox_U)
+
+        empty_label_2 = QLabel('')
+        vbox.addWidget(empty_label_2)
+
+        empty_label_I = QLabel('I:')
+        vbox.addWidget(empty_label_I)
+
+        list_I = GrowingTextEdit()
+        list_I.setText("")
+        list_I.setMinimumHeight(100)
+        list_I.setMaximumHeight(100)
+
+        def list_I_changed():  # maybe there are no any possible mistakes but I'll use try/except anyways
+            try:
+                _list = [x.split(' ') for x in list_I.toPlainText().split('\n')]
+                self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].I = [[float(j) for j in i] for i in _list]
+                    # instance_menu.id_of_instance].I = [[float(y) for y in x.split(' ')] for x in list_I.toPlainText().split('\n')]
+                    # instance_menu.id_of_instance].I = [x.split(' ') for x in list_I.toPlainText().split('\n')]
+            except:
+                self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].I = []  # 'Incorrect symbols in list'
+
+        list_I.textChanged.connect(list_I_changed)
+        vbox.addWidget(list_I)
+
+        empty_label_3 = QLabel('')
+        vbox.addWidget(empty_label_3)
+
+        empty_label_T = QLabel('T:')
+        vbox.addWidget(empty_label_T)
+
+        list_T = GrowingTextEdit()
+        list_T.setText("")
+        list_T.setMinimumHeight(100)
+        list_T.setMaximumHeight(100)
+
+        def list_T_changed():  # maybe there are no any possible mistakes but I'll use try/except anyways
+            try:
+                _list = [x.split(' ') for x in list_T.toPlainText().split('\n')]
+                self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].T = [[float(j) for j in i] for i in _list]
+                    # instance_menu.id_of_instance].T = [[float(y) for y in x.split(' ')] for x in list_T.toPlainText().split('\n')]
+                    # instance_menu.id_of_instance].T = [x.split(' ') for x in list_T.toPlainText().split('\n')]
+            except:
+                self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].T = []  # 'Incorrect symbols in list'
+
+        list_T.textChanged.connect(list_T_changed)
+        vbox.addWidget(list_T)
+
+        empty_label_4 = QLabel('')
+        vbox.addWidget(empty_label_4)
+
+        empty_label_5 = QLabel('')
+        vbox.addWidget(empty_label_5)
+
+        button_import_tree = QPushButton()
+        button_import_tree.setText('import')
+            # self._global_variables.default_dict.get('import_tree'))
+        def button_import_tree_clicked(arg):
+            try:
+                filename, _ = QFileDialog.getOpenFileName(self,
+                                                           self._global_variables.default_dict.get(
+                                                               'open_project'),'',
+                                                            "Json Files (*.json)",
+                                                          options=QFileDialog.DontUseNativeDialog)
+                if (filename):
+                    sm = ScheduleManager()
+                    schedule = sm.read_data_from_json(filename)
+                    self.connector.list_of_menu_instances[
+                        instance_menu.id_of_instance].T = schedule.list_of_lists_of_times
+                    self.connector.list_of_menu_instances[
+                        instance_menu.id_of_instance].V = schedule.deadline
+                    self.connector.list_of_menu_instances[
+                        instance_menu.id_of_instance].I = schedule.list_of_important_indexes
+                    self.connector.list_of_menu_instances[
+                        instance_menu.id_of_instance].U = schedule.time_of_the_start
+                    self.connector.list_of_menu_instances[
+                        instance_menu.id_of_instance].N = schedule.valid_length_of_list
+                    update_gui_elements()
+            except:
+                print('Oops! An Error: There is a problem with a file, which you have tried to open.\n'
+                    ' Make sure, it has the right extension')
+            print_all_values()
+        button_import_tree.clicked.connect(button_import_tree_clicked)
+        vbox.addWidget(button_import_tree)
+
+        button_export_tree_as_list = QPushButton()
+        button_export_tree_as_list.setText('export_tree_as_list')
+            # self._global_variables.default_dict.get('export_tree_as_list'))
+        def button_export_tree_as_list_clicked(arg):
+            try:
+                name, _ = QtWidgets.QFileDialog.getSaveFileName(self, 
+                                                            self._global_variables.default_dict.get(
+                                                                'save_file'),
+                                                                '.json','Json Files (*.json)')
+                if name:
+                    sm = ScheduleManager()
+                    schedule = OptimizedSchedule()
+                    schedule.init(get_values_to_make_schedule())
+                    sm.write_data_to_json(name, schedule)
+                print_all_values()
+            except:
+                print('Oops! An Error: There is a problem with a file, which you have tried to save.')
+            
+        button_export_tree_as_list.clicked.connect(button_export_tree_as_list_clicked)
+        vbox.addWidget(button_export_tree_as_list)
 
         content = QtWidgets.QWidget()
         vlay = QtWidgets.QVBoxLayout(content)
         box = CollapsibleBox(self._global_variables.default_dict.get('additional_options_of_the_instance'))
         
         vlay.addWidget(name)
+        vlay.addWidget(button_pretty_print_to_text_edit)
         vlay.addWidget(box)
         
         verticalSpacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
@@ -468,6 +690,20 @@ class Application(QtWidgets.QMainWindow):
         
         box.setContentLayout(vbox)
         vlay.addStretch()
+        
+        def update_gui_elements():
+            list_T.setText(
+                '\n'.join(' '.join(map(str,sl)) for sl in self.connector.list_of_menu_instances[
+                        instance_menu.id_of_instance].T))
+            list_I.setText(
+                ' '.join(map(str, self.connector.list_of_menu_instances[
+                        instance_menu.id_of_instance].I)))
+            spinBox_U.setValue(float(self.connector.list_of_menu_instances[
+                        instance_menu.id_of_instance].U))
+            spinBox_V.setValue(float(self.connector.list_of_menu_instances[
+                        instance_menu.id_of_instance].V))
+            spinBox_N.setValue(int(self.connector.list_of_menu_instances[
+                        instance_menu.id_of_instance].N))
         
         frame_ = QtWidgets.QFrame()
         frame_.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Plain)
@@ -483,8 +719,8 @@ class Application(QtWidgets.QMainWindow):
         
     def clear_textedit(self):
         self.text_edit.clear()
-        self.text_edit.setText('hey it works')
-        print('hey it works')
+        # self.text_edit.setText('hey it works')
+        # print('hey it works')
 
     def close_application(self):
         msg = QMessageBox()
@@ -576,6 +812,15 @@ class OptimizedSchedule():
         self.list_of_important_indexes = data['I'] # list_of_important_indexes
         self.time_of_the_start = data['U'] # time_of_the_start
         self.valid_length_of_list = data['N'] # valid_length_of_list
+ 
+    def __repr__(self):
+        return "\n" + \
+            "%r\n%r\n%r\n%r\n%r\n" % (
+                self.valid_length_of_list,
+                self.deadline,
+                self.list_of_important_indexes,
+                self.time_of_the_start,
+                self.list_of_lists_of_times)
  
     def find_the_best_list(self):
         list_of_valid_lists_of_times = self._validate_each_list_of_times()
@@ -713,12 +958,15 @@ def default_setup():
 def demo():
     sm = ScheduleManager()
     schedule = sm.read_data_from_json('input_0.json')
-    sm.write_data_to_json('input_1.json', schedule)
+    sm.write_data_to_json('input_2.json', schedule)
     
     sm.write_the_best_list_to_file('the_best_option.txt', schedule)
     # print(schedule.find_the_best_list())
 
 if __name__ == "__main__":
+    
+    # demo()
+    
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle("Fusion")
     myapp = Application()
