@@ -473,16 +473,12 @@ class Application(QtWidgets.QMainWindow):
                     instance_menu.id_of_instance].N,
                 'V': self.connector.list_of_menu_instances[
                     instance_menu.id_of_instance].V,
-                'I': tuple(
-                    self.connector.list_of_menu_instances[
-                    instance_menu.id_of_instance].I
-                    ),
+                'I': self.connector.list_of_menu_instances[
+                    instance_menu.id_of_instance].I,
                 'U': self.connector.list_of_menu_instances[
                     instance_menu.id_of_instance].U,
-                'T': tuple(
-                    self.connector.list_of_menu_instances[
+                'T': self.connector.list_of_menu_instances[
                     instance_menu.id_of_instance].T
-                )
             }
             return data_to_return 
 
@@ -579,13 +575,10 @@ class Application(QtWidgets.QMainWindow):
         list_I.setMinimumHeight(100)
         list_I.setMaximumHeight(100)
 
-        def list_I_changed():  # maybe there are no any possible mistakes but I'll use try/except anyways
+        def list_I_changed(): 
             try:
-                _list = [x.split(' ') for x in list_I.toPlainText().split('\n')]
                 self.connector.list_of_menu_instances[
-                    instance_menu.id_of_instance].I = [[float(j) for j in i] for i in _list]
-                    # instance_menu.id_of_instance].I = [[float(y) for y in x.split(' ')] for x in list_I.toPlainText().split('\n')]
-                    # instance_menu.id_of_instance].I = [x.split(' ') for x in list_I.toPlainText().split('\n')]
+                    instance_menu.id_of_instance].I = [int(y) for y in list_I.toPlainText().split(' ')]
             except:
                 self.connector.list_of_menu_instances[
                     instance_menu.id_of_instance].I = []  # 'Incorrect symbols in list'
@@ -604,13 +597,11 @@ class Application(QtWidgets.QMainWindow):
         list_T.setMinimumHeight(100)
         list_T.setMaximumHeight(100)
 
-        def list_T_changed():  # maybe there are no any possible mistakes but I'll use try/except anyways
+        def list_T_changed():  
             try:
                 _list = [x.split(' ') for x in list_T.toPlainText().split('\n')]
                 self.connector.list_of_menu_instances[
                     instance_menu.id_of_instance].T = [[float(j) for j in i] for i in _list]
-                    # instance_menu.id_of_instance].T = [[float(y) for y in x.split(' ')] for x in list_T.toPlainText().split('\n')]
-                    # instance_menu.id_of_instance].T = [x.split(' ') for x in list_T.toPlainText().split('\n')]
             except:
                 self.connector.list_of_menu_instances[
                     instance_menu.id_of_instance].T = []  # 'Incorrect symbols in list'
@@ -620,6 +611,20 @@ class Application(QtWidgets.QMainWindow):
 
         empty_label_4 = QLabel('')
         vbox.addWidget(empty_label_4)
+
+        button_print_average_height = QPushButton()
+        button_print_average_height.setText('print_average_height_of_avl_tree')
+            # self._global_variables.default_dict.get('print_average_height_of_avl_tree'))
+        def button_print_average_height_clicked(arg):
+            self.text_edit.clear()
+            schedule = OptimizedSchedule()
+            schedule.init(get_values_to_make_schedule())
+            self.text_edit.append(str(schedule))
+            print_list(schedule.find_the_best_list())
+            print_list(schedule.find_all_valid_lists())
+            
+        button_print_average_height.clicked.connect(button_print_average_height_clicked)
+        vbox.addWidget(button_print_average_height)
 
         empty_label_5 = QLabel('')
         vbox.addWidget(empty_label_5)
@@ -964,8 +969,6 @@ def demo():
     # print(schedule.find_the_best_list())
 
 if __name__ == "__main__":
-    
-    # demo()
     
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle("Fusion")
