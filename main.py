@@ -31,7 +31,19 @@ class GlobalVariables:
             are_you_sure_you_want_to_delete = 'Are you sure you want to delete all instances?',
             add_a_new_instance_menu = 'Add a new instance menu',
             delete_all_instances = 'Delete all instances',
-            hide_current_instance = 'Hide current instance',
+            print_all_info = 'Print all information',         
+            print_all_valid_lists = 'Print all valid lists(satisfying the deadline)',
+            print_the_optimal_list = 'Print the optimal list',
+            all_info = 'All information: ',         
+            all_valid_lists = 'All valid lists(satisfying the deadline): ',
+            the_optimal_list = 'The optimal list: ',
+            label_n = 'Valid length of the lists(N): ',
+            label_u = 'Time of the start(U): ',
+            label_v = 'Deadline(V): ',
+            label_i = 'List of important indexes(I): ',
+            label_t = 'List of lists of times(T): ',
+            import_the_data = 'Import the data',
+            export_the_data = 'Export the data',
             confirm_exit = 'Confirm exit',
             are_you_sure_you_want_to_exit = 'Are you sure you want to exit?',
             about_window_title = 'About',
@@ -59,7 +71,19 @@ class GlobalVariables:
             are_you_sure_you_want_to_delete = 'Вы уверены, что хотите удалить все объекты?',
             add_a_new_instance_menu = 'Добавить меню для нового экземпляра объекта',
             delete_all_instances = 'Удалить все экземпляры объектов',
-            hide_current_instance = 'Скрыть данный экземпляр объекта',
+            print_all_info = 'Отобразить всю информацию',
+            print_all_valid_lists = 'Отобразить все списки, удовлетворяющие дедлайну',
+            print_the_optimal_list = 'Отобразить самый оптимальный список',
+            all_info = 'Вся информация: ',         
+            all_valid_lists = 'Все списки, удовлетворяющие дедлайну: ',
+            the_optimal_list = 'Самый оптимальный список: ',
+            label_n = 'Заданное количество элементов в списке(N): ',
+            label_u = 'Время начала отсчета(U): ',
+            label_v = 'Срок сдачи, к которому необходимо иметь выполненные элементы с индексами ниже(V): ',
+            label_i = 'Список индексов необходимых выполненных элементов(I): ',
+            label_t = 'Список списков всех времен(T): ',
+            import_the_data = 'Импортировать данные из файла',
+            export_the_data = 'Экспортировать данные в файл',
             confirm_exit = 'Подтвердите выход',
             are_you_sure_you_want_to_exit = 'Вы уверены, что хотите выйти?',
             about_window_title = 'Об авторе',
@@ -442,31 +466,6 @@ class Application(QtWidgets.QMainWindow):
 
         name.textChanged.connect(name_changed)
 
-        # def create_schedule():
-        #     N = 5 # N is int number of items, just the length of the list
-        #     V = 4 # V is float deadline, items with important indexes must be processed by this value of time
-        #     K, L = 2, 4 # K and L are two important indexes
-        #     I = [K, L] # list of important indexes
-        #     U = 0 # the time of the float start
-            
-        #     T = [  # list_of_lists_with_times
-        #         [2, 2, 1, 1, 1],
-        #         [1, 1, .5, .5, .5], # this one is the best out of all given samples
-        #         [2, 2, 4, 4, 4],
-        #         [1, 1, 1, .5, .5],
-        #         [1, 2, 2, 2, 2]    
-        #     ]
-            
-        #     data_to_dump = {
-        #         'N': N,
-        #         'V': V,
-        #         'I': tuple([K, L]),
-        #         'U': U,
-        #         'T': tuple(T)
-        #     }
-        #     schedule = OptimizedSchedule()
-        #     schedule.init(data_to_dump)
-
         def get_values_to_make_schedule():
             data_to_return = {
                 'N': self.connector.list_of_menu_instances[
@@ -493,30 +492,51 @@ class Application(QtWidgets.QMainWindow):
             except:
                 pass
             
-
-        # def print_list(list_of_frequency: list, number_of_elements: int):
-        #     self.text_edit.clear()
-        #     if list_of_frequency:
-        #         for i, v in enumerate(list_of_frequency):
-        #             if i < number_of_elements:
-        #                 try:
-        #                     self.text_edit.append(
-        #                         self._global_variables.default_dict.get('value') + str(v[0]) + ', ' +
-        #                         self._global_variables.default_dict.get('frequency') + str(v[1]))
-        #                     # self.text_edit.append(
-        #                     #     self._global_variables.default_dict.get('value') + str(v[0]) + ', ' +
-        #                     #     self._global_variables.default_dict.get('frequency') + str(v[1]))
-        #                 except:
-        #                     pass
-
-        button_pretty_print_to_text_edit = QPushButton()
-        button_pretty_print_to_text_edit.setText("")
-            # self._global_variables.default_dict.get('pretty_print_tree_to_text_edit'))
-        def button_pretty_print_to_text_edit_clicked(arg):
+        button_print_all_info = QPushButton()
+        button_print_all_info.setText(
+            self._global_variables.default_dict.get('print_all_info'))
+        def button_print_all_info_clicked(arg):
+            self.text_edit.clear()
+            schedule = OptimizedSchedule()
+            schedule.init(get_values_to_make_schedule())
+            self.text_edit.append(self._global_variables.default_dict.get('all_info'))
             print_all_values()
-        button_pretty_print_to_text_edit.clicked.connect(button_pretty_print_to_text_edit_clicked)
+            self.text_edit.append(self._global_variables.default_dict.get('the_optimal_list'))
+            print_list(schedule.find_the_best_list())
+            self.text_edit.append(self._global_variables.default_dict.get('all_valid_lists'))
+            print_list(schedule.find_all_valid_lists())
+            
+        button_print_all_info.clicked.connect(button_print_all_info_clicked)
 
-        empty_label_N = QLabel('N:')
+        button_print_all_valid_lists = QPushButton()
+        button_print_all_valid_lists.setText(
+            self._global_variables.default_dict.get('print_all_valid_lists')) 
+        def button_print_all_valid_lists_clicked(arg):
+            self.text_edit.clear()
+            schedule = OptimizedSchedule()
+            schedule.init(get_values_to_make_schedule())
+            # self.text_edit.append(str(schedule))
+            self.text_edit.append(self._global_variables.default_dict.get('all_valid_lists'))
+            print_list(schedule.find_all_valid_lists())
+            
+        button_print_all_valid_lists.clicked.connect(button_print_all_valid_lists_clicked)
+        vbox.addWidget(button_print_all_valid_lists)
+        
+        button_print_the_optimal_list = QPushButton()
+        button_print_the_optimal_list.setText(
+            self._global_variables.default_dict.get('print_the_optimal_list'))
+        def button_print_the_optimal_list_clicked(arg):
+            self.text_edit.clear()
+            schedule = OptimizedSchedule()
+            schedule.init(get_values_to_make_schedule())
+            # self.text_edit.append(str(schedule))
+            self.text_edit.append(self._global_variables.default_dict.get('the_optimal_list'))
+            print_list(schedule.find_the_best_list())
+            
+        button_print_the_optimal_list.clicked.connect(button_print_the_optimal_list_clicked)
+        vbox.addWidget(button_print_the_optimal_list)
+
+        empty_label_N = QLabel(self._global_variables.default_dict.get('label_n'))
         vbox.addWidget(empty_label_N)
 
         def set_number_of_elements_N():
@@ -533,7 +553,7 @@ class Application(QtWidgets.QMainWindow):
         empty_label_0 = QLabel('')
         vbox.addWidget(empty_label_0)
         
-        empty_label_V = QLabel('V:')
+        empty_label_V = QLabel(self._global_variables.default_dict.get('label_v'))
         vbox.addWidget(empty_label_V)
         
         def set_number_of_elements_V():
@@ -550,7 +570,7 @@ class Application(QtWidgets.QMainWindow):
         empty_label_1 = QLabel('')
         vbox.addWidget(empty_label_1)
 
-        empty_label_U = QLabel('U:')
+        empty_label_U = QLabel(self._global_variables.default_dict.get('label_u'))
         vbox.addWidget(empty_label_U)
 
         def set_number_of_elements_U():
@@ -567,7 +587,7 @@ class Application(QtWidgets.QMainWindow):
         empty_label_2 = QLabel('')
         vbox.addWidget(empty_label_2)
 
-        empty_label_I = QLabel('I:')
+        empty_label_I = QLabel(self._global_variables.default_dict.get('label_i'))
         vbox.addWidget(empty_label_I)
 
         list_I = GrowingTextEdit()
@@ -589,7 +609,7 @@ class Application(QtWidgets.QMainWindow):
         empty_label_3 = QLabel('')
         vbox.addWidget(empty_label_3)
 
-        empty_label_T = QLabel('T:')
+        empty_label_T = QLabel(self._global_variables.default_dict.get('label_t'))
         vbox.addWidget(empty_label_T)
 
         list_T = GrowingTextEdit()
@@ -612,26 +632,9 @@ class Application(QtWidgets.QMainWindow):
         empty_label_4 = QLabel('')
         vbox.addWidget(empty_label_4)
 
-        button_print_average_height = QPushButton()
-        button_print_average_height.setText('print_average_height_of_avl_tree')
-            # self._global_variables.default_dict.get('print_average_height_of_avl_tree'))
-        def button_print_average_height_clicked(arg):
-            self.text_edit.clear()
-            schedule = OptimizedSchedule()
-            schedule.init(get_values_to_make_schedule())
-            self.text_edit.append(str(schedule))
-            print_list(schedule.find_the_best_list())
-            print_list(schedule.find_all_valid_lists())
-            
-        button_print_average_height.clicked.connect(button_print_average_height_clicked)
-        vbox.addWidget(button_print_average_height)
-
-        empty_label_5 = QLabel('')
-        vbox.addWidget(empty_label_5)
-
         button_import_tree = QPushButton()
-        button_import_tree.setText('import')
-            # self._global_variables.default_dict.get('import_tree'))
+        button_import_tree.setText(
+            self._global_variables.default_dict.get('import_the_data'))
         def button_import_tree_clicked(arg):
             try:
                 filename, _ = QFileDialog.getOpenFileName(self,
@@ -661,8 +664,8 @@ class Application(QtWidgets.QMainWindow):
         vbox.addWidget(button_import_tree)
 
         button_export_tree_as_list = QPushButton()
-        button_export_tree_as_list.setText('export_tree_as_list')
-            # self._global_variables.default_dict.get('export_tree_as_list'))
+        button_export_tree_as_list.setText(
+            self._global_variables.default_dict.get('export_the_data'))
         def button_export_tree_as_list_clicked(arg):
             try:
                 name, _ = QtWidgets.QFileDialog.getSaveFileName(self, 
@@ -686,7 +689,7 @@ class Application(QtWidgets.QMainWindow):
         box = CollapsibleBox(self._global_variables.default_dict.get('additional_options_of_the_instance'))
         
         vlay.addWidget(name)
-        vlay.addWidget(button_pretty_print_to_text_edit)
+        vlay.addWidget(button_print_all_info)
         vlay.addWidget(box)
         
         verticalSpacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
@@ -724,8 +727,6 @@ class Application(QtWidgets.QMainWindow):
         
     def clear_textedit(self):
         self.text_edit.clear()
-        # self.text_edit.setText('hey it works')
-        # print('hey it works')
 
     def close_application(self):
         msg = QMessageBox()
@@ -832,7 +833,7 @@ class OptimizedSchedule():
         if list_of_valid_lists_of_times:
             list_of_sum = []
             for i, v in enumerate(list_of_valid_lists_of_times):
-                list_of_sum.append(sum(range(len(v))))
+                list_of_sum.append(sum(v))
             index_of_the_best_list = list_of_sum.index(min(list_of_sum))
             return list_of_valid_lists_of_times[index_of_the_best_list]
         return None
