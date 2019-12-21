@@ -7,7 +7,7 @@ class FileHandler():
     
     def print_data(self, data: dict):
         for k, v in data.items():
-                    print('{}: {}'.format(k, v))
+            print('{}: {}'.format(k, v))
     
     def write_json_file(self, path: str, data: dict, indent=4):
         try:
@@ -74,12 +74,21 @@ class OptimizedSchedule():
         self.time_of_the_start = data['U'] # time_of_the_start
         self.valid_length_of_list = data['N'] # valid_length_of_list
  
+    def __repr__(self):
+        return "OptimizedSchedule:\n" + \
+            "%r\n%r\n%r\n%r\n%r\n" % (
+                self.valid_length_of_list,
+                self.deadline,
+                self.list_of_important_indexes,
+                self.time_of_the_start,
+                self.list_of_lists_of_times)
+ 
     def find_the_best_list(self):
         list_of_valid_lists_of_times = self._validate_each_list_of_times()
         if list_of_valid_lists_of_times:
             list_of_sum = []
             for i, v in enumerate(list_of_valid_lists_of_times):
-                list_of_sum.append(sum(range(len(v))))
+                list_of_sum.append(sum(v))
             index_of_the_best_list = list_of_sum.index(min(list_of_sum))
             return list_of_valid_lists_of_times[index_of_the_best_list]
         return None
@@ -138,7 +147,7 @@ class ScheduleManager():
     
     def write_the_best_list_to_file(self, path: str, schedule: OptimizedSchedule):
         try:
-            data = self._dump(schedule)
+            # data = self._dump(schedule)
             the_best_list = schedule.find_the_best_list()
             list_of_valid_lists = schedule.find_all_valid_lists()
             self.file_handler.write_list_to_file(path, the_best_list, list_of_valid_lists)
@@ -180,11 +189,11 @@ class ScheduleManager():
     
 def demo_0():
     # given values
-    N = 5 # N is number of items, just the length of the list
-    V = 4 # V is deadline, items with important indexes must be processed by this value of time
+    N = 5 # N is int number of items, just the length of the list
+    V = 4 # V is float deadline, items with important indexes must be processed by this value of time
     K, L = 2, 4 # K and L are two important indexes
     I = [K, L] # list of important indexes
-    U = 0 # the time of the start
+    U = 0 # the time of the float start
     
     # lists down below are the lists of time of processing each item
     # (each element is the time of processing current item with that index)
@@ -214,20 +223,20 @@ def demo_0():
     schedule.init(data_to_dump)
     
     sm = ScheduleManager()
-    sm.write_data_to_json('input_0.json', schedule)
+    sm.write_data_to_json('example_0.json', schedule)
 
 
-def demo():
-    
+def demo_1():
     sm = ScheduleManager()
-    schedule = sm.read_data_from_json('input_0.json')
-    sm.write_data_to_json('input_1.json', schedule)
+    schedule = sm.read_data_from_json('example_2.json')
+    sm.write_data_to_json('example_3.json', schedule)
     
-    sm.write_the_best_list_to_file('the_best_option.txt', schedule)
+    # sm.write_the_best_list_to_file('the_best_option.txt', schedule)
     # print(schedule.find_the_best_list())
-
+    print(schedule)
+        
         
 if __name__ == "__main__":
     
-    demo()
+    demo_1()
     
