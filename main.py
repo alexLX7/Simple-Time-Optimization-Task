@@ -2,7 +2,6 @@ import json
 import sys
 import random
 from time import sleep
-from customGUI import Ui_MainWindow
 from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -10,7 +9,7 @@ from PyQt5.QtWidgets import *
 
 class GlobalVariables: 
     def __init__(self):
-        self._dict_eng = dict(  # usage: self._global_variables.default_dict.get('
+        self._dict_eng = dict(
             yes = 'Yes',
             no = 'No',
             instance = 'Instance ',
@@ -48,7 +47,7 @@ class GlobalVariables:
             are_you_sure_you_want_to_exit = 'Are you sure you want to exit?',
             about_window_title = 'About',
             about_window_creators_name = 'Pavlov Alex',
-            about_window_creators_github = 'https://github.com/alexLAP7'
+            about_window_creators_github='https://github.com/alexLX7 \n\n(https://github.com/alexLAP7 is an old link)'
         )
         self._dict_rus = dict(
             yes = 'Да',
@@ -88,9 +87,10 @@ class GlobalVariables:
             are_you_sure_you_want_to_exit = 'Вы уверены, что хотите выйти?',
             about_window_title = 'Об авторе',
             about_window_creators_name = 'Павлов Александр',
-            about_window_creators_github = 'https://github.com/alexLAP7'
+            about_window_creators_github='https://github.com/alexLX7 \n\n(https://github.com/alexLAP7 is an old link)'
         )
-        self.default_dict = self._dict_rus
+        # self.default_dict = self._dict_rus
+        self.default_dict = self._dict_eng
 
 
 class MenuInstance:
@@ -234,7 +234,7 @@ class InstructionWindow(QtWidgets.QMainWindow):
         frame.setLayout(vbox)
 
         label_text = QLabel()
-        label_text.setText("Text")
+        label_text.setText(self._global_variables.default_dict.get('instructions') )
         vbox.addWidget(label_text)
 
         verticalSpacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
@@ -284,8 +284,6 @@ class AboutWindow(QtWidgets.QMainWindow):  # have to change but it works for now
 class Application(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
         self._global_variables = GlobalVariables()
         self.title = 'Application'
         self.setWindowTitle(self.title)
@@ -933,11 +931,11 @@ class ScheduleManager():
     
     
 def default_setup():
-    N = 5 # N is number of items, just the length of the list
-    V = 4 # V is deadline, items with important indexes must be processed by this value of time
-    K, L = 2, 4 # K and L are two important indexes
-    I = [K, L] # list of important indexes
-    U = 0 # the time of the start
+    N = 5 # N is a number of items, just the length of the list
+    V = 4 # V is a deadline, items with important indexes must be processed by this value
+    K, L = 2, 4 # K and L are the two important indexes
+    I = [K, L] # list of an important indexes
+    U = 0 # is a time of the start
     
     T = [  # list_of_lists_with_times
         [2, 2, 1, 1, 1],
@@ -965,9 +963,9 @@ def demo():
     sm = ScheduleManager()
     schedule = sm.read_data_from_json('input_0.json')
     sm.write_data_to_json('input_2.json', schedule)
-    
-    sm.write_the_best_list_to_file('the_best_option.txt', schedule)
-    # print(schedule.find_the_best_list())
+    # sm.write_the_best_list_to_file('the_best_option.txt', schedule)
+    print(schedule.find_the_best_list())
+
 
 if __name__ == "__main__":
     
